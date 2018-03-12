@@ -9,6 +9,6 @@
 import Foundation
 import AVFoundation
 
-public typealias BarcodeType = AVMetadataObject.ObjectType
 public typealias CameraPosition = AVCaptureDevice.Position
 public typealias CodeType = AVMetadataObject.ObjectType
+

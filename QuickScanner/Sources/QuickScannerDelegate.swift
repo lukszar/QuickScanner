@@ -13,7 +13,7 @@ public protocol QuickScannerDelegate: class {
 
     var videoPreview: UIView { get }
 
-    func quickScanner(_ scanner: QuickScanner, didCaptureCode code: String, type: BarcodeType)
+    func quickScanner(_ scanner: QuickScanner, didCaptureCode code: String, type: CodeType)
     func quickScanner(_ scanner: QuickScanner, didReceiveError error: Error)
     func quickScannerDidSetup(_ scanner: QuickScanner)
     func quickScannerDidEndScanning(_ scanner: QuickScanner)
