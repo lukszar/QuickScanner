@@ -21,7 +21,7 @@ final class VideoPermission {
         case .notDetermined:
             askForPermissions(completion)
         default:
-            completion(Error.notAuthorizedToUseCamera)
+            completion(QuickScannerError.notAuthorizedToUseCamera)
         }
     }
 
@@ -30,7 +30,7 @@ final class VideoPermission {
         AVCaptureDevice.requestAccess(for: .video) { granted in
             DispatchQueue.main.async {
                 guard granted else {
-                    completion(Error.notAuthorizedToUseCamera)
+                    completion(QuickScannerError.notAuthorizedToUseCamera)
                     return
                 }
                 completion(nil)

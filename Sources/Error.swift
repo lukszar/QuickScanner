@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum Error: Swift.Error {
+public enum QuickScannerError: Swift.Error {
     case notAuthorizedToUseCamera
     case cameraInvalid
     case cameraNotFound

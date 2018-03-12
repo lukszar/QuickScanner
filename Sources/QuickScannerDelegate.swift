@@ -14,7 +14,7 @@ public protocol QuickScannerDelegate: class {
     var videoPreview: UIView { get }
 
     func quickScanner(_ scanner: QuickScanner, didCaptureCode code: String, type: CodeType)
-    func quickScanner(_ scanner: QuickScanner, didReceiveError error: Error)
+    func quickScanner(_ scanner: QuickScanner, didReceiveError error: QuickScannerError)
     func quickScannerDidSetup(_ scanner: QuickScanner)
     func quickScannerDidEndScanning(_ scanner: QuickScanner)
 }

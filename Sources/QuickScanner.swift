@@ -11,7 +11,7 @@ import AVFoundation
 
 open class QuickScanner: NSObject {
 
-    public weak var delegate: QuickScannerDelegate? {
+    open weak var delegate: QuickScannerDelegate? {
         didSet { self.prepareCamera() }
     }
 
@@ -22,7 +22,7 @@ open class QuickScanner: NSObject {
     private var videoPermission: VideoPermission
     private var codeTypes: [CodeType]
 
-    public var isCapturing: Bool {
+    open var isCapturing: Bool {
         return captureSession.isRunning
     }
 
@@ -44,7 +44,7 @@ open class QuickScanner: NSObject {
         videoPermission.checkPersmission { [weak self] error in
             guard let `self` = self else { return }
             guard error == nil else {
-                self.delegate?.quickScanner(self, didReceiveError: Error.notAuthorizedToUseCamera)
+                self.delegate?.quickScanner(self, didReceiveError: QuickScannerError.notAuthorizedToUseCamera)
                 return
             }
 
@@ -72,7 +72,7 @@ open class QuickScanner: NSObject {
         if Environment.current == .simulator { return }
 
         guard let device = QuickScanner.Camera.device(for: position) else {
-            delegate?.quickScanner(self, didReceiveError: .cameraNotFound)
+            delegate?.quickScanner(self, didReceiveError: QuickScannerError.cameraNotFound)
             return
         }
 
@@ -92,7 +92,7 @@ open class QuickScanner: NSObject {
 
         } catch(let error) {
 
-            delegate?.quickScanner(self, didReceiveError: Error.system(error))
+            delegate?.quickScanner(self, didReceiveError: QuickScannerError.system(error))
             Logger.warning(message: error.localizedDescription)
             return
         }
@@ -109,11 +109,11 @@ open class QuickScanner: NSObject {
         delegate?.videoPreview.setNeedsLayout()
     }
 
-    public func startCapturing() {
+    open func startCapturing() {
         captureSession.startRunning()
     }
 
-    public func stopCapturing() {
+    open func stopCapturing() {
 
         captureSession.stopRunning()
         delegate?.quickScannerDidEndScanning(self)
@@ -122,7 +122,7 @@ open class QuickScanner: NSObject {
 
 extension QuickScanner: AVCaptureMetadataOutputObjectsDelegate {
 
-    public func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
+    open func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
 
         guard let obj = metadataObjects.first else { return }
         guard let text = (obj as? AVMetadataMachineReadableCodeObject)?.stringValue else { return }
