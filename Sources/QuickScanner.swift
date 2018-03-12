@@ -87,6 +87,8 @@ open class QuickScanner: NSObject {
             }
 
             // Set the input device on the capture session.
+            captureSession.sessionPreset = .hd4K3840x2160
+            captureSession.usesApplicationAudioSession = false
             captureSession.addInput(input)
             captureSession.commitConfiguration()
 
