@@ -1,0 +1,47 @@
+# the build
+Build
+build
+DerivedData
+Docs/API
+
+# temp nibs and swap files
+*~.nib
+*.swp
+*.orig
+
+# OS X folder attributes
+.DS_Store
+
+# user-specific XCode stuff
+*.mode1v3
+*.mode2v3
+*.pbxuser
+*.perspectivev3
+*.xcuserdatad
+
+!default.pbxuser
+!default.mode1v3
+!default.mode2v3
+!default.perspectivev3
+
+## Obj-C/Swift specific
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+## Playgrounds
+timeline.xctimeline
+playground.xcworkspace
+
+
+.build/
+
+Carthage/Build
+
+Pods/*
+Podfile.lock
+*.xccheckout
+*.moved-aside
+*.xcuserstate
+*.xcscmblueprint
