@@ -47,6 +47,13 @@ For any help, check [Carthage manual](https://github.com/Carthage/Carthage#addin
 
 ## Usage
 
+In `Info.plist` file add following code to allow your application to access iPhone's camera:
+
+```plist
+<key>NSCameraUsageDescription</key>
+<string>Allow access to camera</string>
+```
+
 Create variable for your scanner in UIViewController
 
 ```swift
