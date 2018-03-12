@@ -44,3 +44,46 @@ github "lukszar/QuickScanner"
 
 Run `carthage update` to build the framework and add `QuickScanner.framework` into your Xcode project.
 For any help, check [Carthage manual](https://github.com/Carthage/Carthage#adding-frameworks-to-an-application)
+
+## Usage
+
+Create variable for your scanner in UIViewController
+
+```swift
+var qrCodeScanner: QuickScanner!
+```
+
+
+in viewDidLoad() initialize scanner component with following code:
+```swift
+qrCodeScanner = QuickScanner(codeTypes: [CodeType.qr])
+qrCodeScanner.delegate = self
+```
+
+
+as `codeTypes` here I used qr type, but you can use list of all types you want to be able to scan with this instance of scanner.
+
+For easy handling scanned codes you have to implement few delegate's methods like following:
+
+```swift
+func quickScanner(_ scanner: QuickScanner, didCaptureCode code: String, type: CodeType) {
+  print(code)
+}
+
+func quickScanner(_ scanner: QuickScanner, didReceiveError error: QuickScannerError) {
+    print("didReceiveError: \(error)")
+}
+
+func quickScannerDidSetup(_ scanner: QuickScanner) {
+    scanner.startCapturing()
+}
+
+func quickScannerDidEndScanning(_ scanner: QuickScanner) {
+}
+
+var videoPreview: UIView {
+    return self.view
+}
+```
+
+
