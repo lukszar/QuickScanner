@@ -93,4 +93,11 @@ var videoPreview: UIView {
 }
 ```
 
+## Help
 
+_Have you found an error?_  
+Feel free to open new issue and describe your problem. 
+
+
+_Do you mind a new feature you would like to add?_  
+Develop your ideas by contributing in this project and adding them here.
