@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13771" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13772"/>
+        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
+        <capability name="Constraints with non-1.0 multipliers" minToolsVersion="5.1"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController id="BYZ-38-t0r" customClass="ViewController" customModule="QuickScannerDemo" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="cameraFrame" translatesAutoresizingMaskIntoConstraints="NO" id="gPu-Ok-A21">
+                                <rect key="frame" x="19" y="114.5" width="337.5" height="337.5"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" secondItem="gPu-Ok-A21" secondAttribute="height" multiplier="1:1" id="V5S-TY-uBy"/>
+                                </constraints>
+                            </imageView>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="QR6-wF-Cyc">
+                                <rect key="frame" x="0.0" y="567" width="375" height="100"/>
+                                <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="eKB-0R-9u3">
+                                        <rect key="frame" x="8" y="0.0" width="359" height="100"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstItem="eKB-0R-9u3" firstAttribute="top" secondItem="QR6-wF-Cyc" secondAttribute="top" id="6F7-bA-MEp"/>
+                                    <constraint firstAttribute="bottom" secondItem="eKB-0R-9u3" secondAttribute="bottom" id="D5W-qW-yJN"/>
+                                    <constraint firstItem="eKB-0R-9u3" firstAttribute="leading" secondItem="QR6-wF-Cyc" secondAttribute="leading" constant="8" id="N3X-4Q-QZa"/>
+                                    <constraint firstAttribute="trailing" secondItem="eKB-0R-9u3" secondAttribute="trailing" constant="8" id="cr8-3l-D7z"/>
+                                    <constraint firstAttribute="height" constant="100" id="xWl-Yj-a48"/>
+                                </constraints>
+                            </view>
+                        </subviews>
+                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="QR6-wF-Cyc" firstAttribute="bottom" secondItem="6Tk-OE-BBY" secondAttribute="bottom" id="7DS-HA-ndX"/>
+                            <constraint firstItem="gPu-Ok-A21" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" multiplier="0.85" id="FS2-ZN-PEm"/>
+                            <constraint firstItem="gPu-Ok-A21" firstAttribute="width" secondItem="8bC-Xf-vdC" secondAttribute="width" multiplier="0.9" id="ODn-d3-pUt"/>
+                            <constraint firstItem="QR6-wF-Cyc" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="RtW-vp-oM4"/>
+                            <constraint firstItem="QR6-wF-Cyc" firstAttribute="trailing" secondItem="6Tk-OE-BBY" secondAttribute="trailing" id="YHf-4P-Aih"/>
+                            <constraint firstItem="gPu-Ok-A21" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="dSr-Ub-I3C"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
+                    </view>
+                    <connections>
+                        <outlet property="cameraFrame" destination="gPu-Ok-A21" id="RWC-uP-cka"/>
+                        <outlet property="message" destination="eKB-0R-9u3" id="tew-y2-8W7"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="136.80000000000001" y="132.68365817091455"/>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="cameraFrame" width="307" height="307"/>
+    </resources>
+</document>
