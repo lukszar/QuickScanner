@@ -66,6 +66,7 @@ class ViewController: UIViewController {
 }
 
 extension ViewController: QuickScannerDelegate {
+
     func quickScanner(_ scanner: QuickScanner, didCaptureCode code: String, type: CodeType) {
         message.text = code
     }
@@ -86,4 +87,10 @@ extension ViewController: QuickScannerDelegate {
     var videoPreview: UIView {
         return self.view
     }
+
+    var rectOfInterest: UIView {
+        return self.cameraFrame
+    }
+
+
 }

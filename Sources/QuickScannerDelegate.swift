@@ -12,6 +12,8 @@ import UIKit
 public protocol QuickScannerDelegate: class {
 
     var videoPreview: UIView { get }
+    /// rect of focus while scanning. Metadata outside of this rect will be skipped
+    var rectOfInterest: UIView { get }
 
     func quickScanner(_ scanner: QuickScanner, didCaptureCode code: String, type: CodeType)
     func quickScanner(_ scanner: QuickScanner, didReceiveError error: QuickScannerError)

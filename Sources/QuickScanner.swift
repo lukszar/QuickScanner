@@ -11,25 +11,37 @@ import AVFoundation
 
 open class QuickScanner: NSObject {
 
-    open weak var delegate: QuickScannerDelegate? {
+    open weak var delegate: QuickScannerDelegate! {
         didSet { self.prepareCamera() }
     }
 
     private var captureSession: AVCaptureSession
     private var captureDevice: AVCaptureDevice?
     private var videoPreviewLayer: AVCaptureVideoPreviewLayer!
+    private var output: AVCaptureMetadataOutput?
 
     private var videoPermission: VideoPermission
     private var codeTypes: [CodeType]
+
+    /// Rect for scanning focus area. It calculate coordinates of ROI based on coordinates of videoPreview.
+    private var roiBounds: CGRect {
+        let roi = delegate.rectOfInterest
+        return roi.convert(roi.bounds, to: delegate.videoPreview)
+    }
 
     open var isCapturing: Bool {
         return captureSession.isRunning
     }
 
+
     deinit {
         stopCapturing()
         videoPreviewLayer?.removeFromSuperlayer()
         delegate = nil
+
+        if let output = output {
+            captureSession.removeOutput(output)
+        }
     }
 
     public init(codeTypes: [CodeType]) {
@@ -39,19 +51,21 @@ open class QuickScanner: NSObject {
         self.codeTypes = codeTypes
     }
 
+    /// prepareCamera method should be executed only when delegate is set.
     private func prepareCamera() {
 
         videoPermission.checkPersmission { [weak self] error in
             guard let `self` = self else { return }
             guard error == nil else {
-                self.delegate?.quickScanner(self, didReceiveError: QuickScannerError.notAuthorizedToUseCamera)
+                self.delegate.quickScanner(self, didReceiveError: QuickScannerError.notAuthorizedToUseCamera)
                 return
             }
 
+            self.prepareVideoPreviewLayer()
             self.setupSessionInput(for: .back)
             self.setupSessionOutput()
-            self.prepareVideoPreviewLayer()
-            self.delegate?.quickScannerDidSetup(self)
+
+            self.delegate.quickScannerDidSetup(self)
         }
     }
 
@@ -60,8 +74,8 @@ open class QuickScanner: NSObject {
         videoPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
         videoPreviewLayer.videoGravity = AVLayerVideoGravity.resizeAspectFill
 
-        videoPreviewLayer.frame = delegate?.videoPreview.bounds ?? .zero
-        delegate?.videoPreview.layer.insertSublayer(videoPreviewLayer, at: 0)
+        videoPreviewLayer.frame = delegate.videoPreview.bounds
+        delegate.videoPreview.layer.insertSublayer(videoPreviewLayer, at: 0)
     }
 
     /**
@@ -72,15 +86,14 @@ open class QuickScanner: NSObject {
         if Environment.current == .simulator { return }
 
         guard let device = QuickScanner.Camera.device(for: position) else {
-            delegate?.quickScanner(self, didReceiveError: QuickScannerError.cameraNotFound)
+            delegate.quickScanner(self, didReceiveError: QuickScannerError.cameraNotFound)
             return
         }
-        captureDevice = device
+
 
         // Get an instance of the AVCaptureDeviceInput class using the previous device object.
         do {
             let input = try AVCaptureDeviceInput(device: device)
-
             try device.lockForConfiguration()
             captureSession.beginConfiguration()
 
@@ -89,21 +102,15 @@ open class QuickScanner: NSObject {
             device.focusMode = .continuousAutoFocus
             device.exposureMode = .continuousAutoExposure
 
-            if let bounds = delegate?.videoPreview.bounds {
-                let point = CGPoint(x: bounds.midX, y: bounds.midY)
-                device.exposurePointOfInterest = point
-                device.focusPointOfInterest = point
-            }
-
             if let currentInput = captureSession.inputs.filter({$0 is AVCaptureDeviceInput}).first {
                 captureSession.removeInput(currentInput)
             }
 
             // Set the input device on the capture session.
 
-            if captureDevice?.supportsSessionPreset(.hd4K3840x2160) == true {
+            if device.supportsSessionPreset(.hd4K3840x2160) == true {
                 captureSession.sessionPreset = .hd4K3840x2160
-            } else if captureDevice?.supportsSessionPreset(.high) == true {
+            } else if device.supportsSessionPreset(.high) == true {
                 captureSession.sessionPreset = .high
             }
 
@@ -111,10 +118,11 @@ open class QuickScanner: NSObject {
             captureSession.addInput(input)
             captureSession.commitConfiguration()
             device.unlockForConfiguration()
+            captureDevice = device
 
         } catch(let error) {
 
-            delegate?.quickScanner(self, didReceiveError: QuickScannerError.system(error))
+            delegate.quickScanner(self, didReceiveError: QuickScannerError.system(error))
             Logger.warning(message: error.localizedDescription)
             return
         }
@@ -124,23 +132,47 @@ open class QuickScanner: NSObject {
         if Environment.current == .simulator { return }
 
         let captureOutput = AVCaptureMetadataOutput()
+        
         captureSession.addOutput(captureOutput)
         captureOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
         captureOutput.metadataObjectTypes = codeTypes
-
-        delegate?.videoPreview.setNeedsLayout()
+        output = captureOutput
+        delegate.videoPreview.setNeedsLayout()
     }
 
+    private func configurePointOfInterests() {
+
+        guard let device = captureDevice else { return }
+        guard let videoPreviewLayer = videoPreviewLayer else { return }
+
+        do {
+            try device.lockForConfiguration()
+            let point = CGPoint(x: roiBounds.midX, y: roiBounds.midY)
+            let convPoint = videoPreviewLayer.captureDevicePointConverted(fromLayerPoint: point)
+            device.exposurePointOfInterest = convPoint
+            device.focusPointOfInterest = convPoint
+            device.unlockForConfiguration()
+        } catch {
+            delegate.quickScanner(self, didReceiveError: .system(error))
+        }
+    }
+
+    // MARK: - Open functions to use framework
     open func startCapturing() {
         captureSession.startRunning()
+
+        configurePointOfInterests()
+        let roi = videoPreviewLayer.metadataOutputRectConverted(fromLayerRect: roiBounds)
+        output?.rectOfInterest = roi
     }
 
     open func stopCapturing() {
 
         captureSession.stopRunning()
-        delegate?.quickScannerDidEndScanning(self)
+        delegate.quickScannerDidEndScanning(self)
     }
 }
+
 
 extension QuickScanner: AVCaptureMetadataOutputObjectsDelegate {
 
@@ -149,7 +181,7 @@ extension QuickScanner: AVCaptureMetadataOutputObjectsDelegate {
         for obj in metadataObjects {
             guard let text = (obj as? AVMetadataMachineReadableCodeObject)?.stringValue else { return }
 
-            delegate?.quickScanner(self, didCaptureCode: text, type: obj.type)
+            delegate.quickScanner(self, didCaptureCode: text, type: obj.type)
             stopCapturing()
         }
     }
