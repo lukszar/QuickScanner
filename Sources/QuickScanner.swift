@@ -75,26 +75,42 @@ open class QuickScanner: NSObject {
             delegate?.quickScanner(self, didReceiveError: QuickScannerError.cameraNotFound)
             return
         }
+        captureDevice = device
 
         // Get an instance of the AVCaptureDeviceInput class using the previous device object.
         do {
             let input = try AVCaptureDeviceInput(device: device)
-            captureDevice = device
+
+            try device.lockForConfiguration()
             captureSession.beginConfiguration()
+
+            // autofocus settings and focus on middle point
+            device.autoFocusRangeRestriction = .near
+            device.focusMode = .continuousAutoFocus
+            device.exposureMode = .continuousAutoExposure
+
+            if let bounds = delegate?.videoPreview.bounds {
+                let point = CGPoint(x: bounds.midX, y: bounds.midY)
+                device.exposurePointOfInterest = point
+                device.focusPointOfInterest = point
+            }
 
             if let currentInput = captureSession.inputs.filter({$0 is AVCaptureDeviceInput}).first {
                 captureSession.removeInput(currentInput)
             }
 
             // Set the input device on the capture session.
-            if captureSession.canSetSessionPreset(.hd4K3840x2160) == true {
+
+            if captureDevice?.supportsSessionPreset(.hd4K3840x2160) == true {
                 captureSession.sessionPreset = .hd4K3840x2160
-            } else {
+            } else if captureDevice?.supportsSessionPreset(.high) == true {
                 captureSession.sessionPreset = .high
             }
+
             captureSession.usesApplicationAudioSession = false
             captureSession.addInput(input)
             captureSession.commitConfiguration()
+            device.unlockForConfiguration()
 
         } catch(let error) {
 
@@ -130,10 +146,11 @@ extension QuickScanner: AVCaptureMetadataOutputObjectsDelegate {
 
     open func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
 
-        guard let obj = metadataObjects.first else { return }
-        guard let text = (obj as? AVMetadataMachineReadableCodeObject)?.stringValue else { return }
+        for obj in metadataObjects {
+            guard let text = (obj as? AVMetadataMachineReadableCodeObject)?.stringValue else { return }
 
-        delegate?.quickScanner(self, didCaptureCode: text, type: obj.type)
-        stopCapturing()
+            delegate?.quickScanner(self, didCaptureCode: text, type: obj.type)
+            stopCapturing()
+        }
     }
 }
