@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="http://szarkowicz.info/github/quickscanner/github-header.png" width="620" max-width="90%" alt="QuickScanner logo ">
+  <img src="http://szarkowicz.info/github/quickscanner/github-header-new.png" width="620" max-width="90%" alt="QuickScanner logo ">
 </p>
 
 ![Build passing](https://img.shields.io/badge/build-passing-brightgreen.svg?style=flat)
