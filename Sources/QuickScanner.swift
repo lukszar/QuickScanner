@@ -169,7 +169,7 @@ open class QuickScanner: NSObject {
     open func stopCapturing() {
 
         captureSession.stopRunning()
-        delegate.quickScannerDidEndScanning(self)
+        delegate?.quickScannerDidEndScanning(self)
     }
 }
 
