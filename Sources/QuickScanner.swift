@@ -172,13 +172,15 @@ open class QuickScanner: NSObject {
 
     // MARK: - Open functions to use framework
     open func startCapturing() {
-        captureSession.startRunning()
+        scannerQueue.async {
+            self.captureSession.startRunning()
 
-        DispatchQueue.main.async {
-            self.configurePointOfInterests()
-            let roi = self.videoPreviewLayer.metadataOutputRectConverted(fromLayerRect: self.roiBounds)
+            DispatchQueue.main.async {
+                self.configurePointOfInterests()
+                let roi = self.videoPreviewLayer.metadataOutputRectConverted(fromLayerRect: self.roiBounds)
 
-            self.output?.rectOfInterest = roi
+                self.output?.rectOfInterest = roi
+            }
         }
     }
 
