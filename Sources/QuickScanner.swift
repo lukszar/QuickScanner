@@ -67,10 +67,10 @@ open class QuickScanner: NSObject {
                 self.prepareVideoPreviewLayer()
                 self.setupSessionInput(for: .back)
                 self.setupSessionOutput()
-            }
 
-            DispatchQueue.main.async {
-                self.delegate.quickScannerDidSetup(self)
+                DispatchQueue.main.async {
+                    self.delegate.quickScannerDidSetup(self)
+                }
             }
         }
     }
