@@ -15,6 +15,9 @@ open class QuickScanner: NSObject {
         didSet { self.prepareCamera() }
     }
 
+    private let scannerQueue = DispatchQueue(label: "QuickScanner Queue")
+    private let metadataScannerQueue = DispatchQueue(label: "Metadata QuickScanner Queue")
+
     private var captureSession: AVCaptureSession
     private var captureDevice: AVCaptureDevice?
     private var videoPreviewLayer: AVCaptureVideoPreviewLayer!
@@ -32,7 +35,6 @@ open class QuickScanner: NSObject {
     open var isCapturing: Bool {
         return captureSession.isRunning
     }
-
 
     deinit {
         stopCapturing()
@@ -61,11 +63,15 @@ open class QuickScanner: NSObject {
                 return
             }
 
-            self.prepareVideoPreviewLayer()
-            self.setupSessionInput(for: .back)
-            self.setupSessionOutput()
+            self.scannerQueue.async {
+                self.prepareVideoPreviewLayer()
+                self.setupSessionInput(for: .back)
+                self.setupSessionOutput()
+            }
 
-            self.delegate.quickScannerDidSetup(self)
+            DispatchQueue.main.async {
+                self.delegate.quickScannerDidSetup(self)
+            }
         }
     }
 
@@ -74,8 +80,10 @@ open class QuickScanner: NSObject {
         videoPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
         videoPreviewLayer.videoGravity = AVLayerVideoGravity.resizeAspectFill
 
-        videoPreviewLayer.frame = delegate.videoPreview.bounds
-        delegate.videoPreview.layer.insertSublayer(videoPreviewLayer, at: 0)
+        DispatchQueue.main.async {
+            self.videoPreviewLayer.frame = self.delegate.videoPreview.bounds
+            self.delegate.videoPreview.layer.insertSublayer(self.videoPreviewLayer, at: 0)
+        }
     }
 
     /**
@@ -89,7 +97,6 @@ open class QuickScanner: NSObject {
             delegate.quickScanner(self, didReceiveError: QuickScannerError.cameraNotFound)
             return
         }
-
 
         // Get an instance of the AVCaptureDeviceInput class using the previous device object.
         do {
@@ -134,26 +141,32 @@ open class QuickScanner: NSObject {
         let captureOutput = AVCaptureMetadataOutput()
         
         captureSession.addOutput(captureOutput)
-        captureOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
-        captureOutput.metadataObjectTypes = codeTypes
+        captureOutput.setMetadataObjectsDelegate(self, queue: metadataScannerQueue)
+        scannerQueue.async {
+            captureOutput.metadataObjectTypes = self.codeTypes
+        }
+
         output = captureOutput
-        delegate.videoPreview.setNeedsLayout()
+        DispatchQueue.main.async {
+            self.delegate.videoPreview.setNeedsLayout()
+        }
     }
 
     private func configurePointOfInterests() {
+        DispatchQueue.main.async {
+            guard let device = self.captureDevice else { return }
+            guard let videoPreviewLayer = self.videoPreviewLayer else { return }
 
-        guard let device = captureDevice else { return }
-        guard let videoPreviewLayer = videoPreviewLayer else { return }
-
-        do {
-            try device.lockForConfiguration()
-            let point = CGPoint(x: roiBounds.midX, y: roiBounds.midY)
-            let convPoint = videoPreviewLayer.captureDevicePointConverted(fromLayerPoint: point)
-            device.exposurePointOfInterest = convPoint
-            device.focusPointOfInterest = convPoint
-            device.unlockForConfiguration()
-        } catch {
-            delegate.quickScanner(self, didReceiveError: .system(error))
+            do {
+                try device.lockForConfiguration()
+                let point = CGPoint(x: self.roiBounds.midX, y: self.roiBounds.midY)
+                let convPoint = videoPreviewLayer.captureDevicePointConverted(fromLayerPoint: point)
+                device.exposurePointOfInterest = convPoint
+                device.focusPointOfInterest = convPoint
+                device.unlockForConfiguration()
+            } catch {
+                self.delegate.quickScanner(self, didReceiveError: .system(error))
+            }
         }
     }
 
@@ -161,9 +174,12 @@ open class QuickScanner: NSObject {
     open func startCapturing() {
         captureSession.startRunning()
 
-        configurePointOfInterests()
-        let roi = videoPreviewLayer.metadataOutputRectConverted(fromLayerRect: roiBounds)
-        output?.rectOfInterest = roi
+        DispatchQueue.main.async {
+            self.configurePointOfInterests()
+            let roi = self.videoPreviewLayer.metadataOutputRectConverted(fromLayerRect: self.roiBounds)
+
+            self.output?.rectOfInterest = roi
+        }
     }
 
     open func stopCapturing() {
@@ -173,7 +189,6 @@ open class QuickScanner: NSObject {
     }
 }
 
-
 extension QuickScanner: AVCaptureMetadataOutputObjectsDelegate {
 
     open func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
@@ -181,7 +196,9 @@ extension QuickScanner: AVCaptureMetadataOutputObjectsDelegate {
         for obj in metadataObjects {
             guard let text = (obj as? AVMetadataMachineReadableCodeObject)?.stringValue else { return }
 
-            delegate.quickScanner(self, didCaptureCode: text, type: obj.type)
+            DispatchQueue.main.async {
+                self.delegate.quickScanner(self, didCaptureCode: text, type: obj.type)
+            }
             stopCapturing()
         }
     }
