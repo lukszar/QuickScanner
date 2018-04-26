@@ -37,7 +37,7 @@ open class QuickScanner: NSObject {
     }
 
     deinit {
-        stopCapturing()
+        captureSession.stopRunning()
         videoPreviewLayer?.removeFromSuperlayer()
         delegate = nil
 
@@ -45,9 +45,9 @@ open class QuickScanner: NSObject {
             captureSession.removeOutput(output)
         }
     }
-
+    
+    /// Initialize the captureSession object.
     public init(codeTypes: [CodeType]) {
-        // Initialize the captureSession object.
         captureSession = AVCaptureSession()
         videoPermission = VideoPermission()
         self.codeTypes = codeTypes
@@ -55,35 +55,44 @@ open class QuickScanner: NSObject {
 
     /// prepareCamera method should be executed only when delegate is set.
     private func prepareCamera() {
+        self.scannerQueue.async {
+            self.videoPermission.checkPersmission { [weak self] error in
+                guard let `self` = self else { return }
 
-        videoPermission.checkPersmission { [weak self] error in
-            guard let `self` = self else { return }
-            guard error == nil else {
-                self.delegate.quickScanner(self, didReceiveError: QuickScannerError.notAuthorizedToUseCamera)
-                return
-            }
+                guard error == nil else {
+                    DispatchQueue.main.async {
+                        self.delegate.quickScanner(self, didReceiveError: QuickScannerError.notAuthorizedToUseCamera)
+                    }
+                    return
+                }
 
-            self.scannerQueue.async {
                 self.prepareVideoPreviewLayer()
                 self.setupSessionInput(for: .back)
                 self.setupSessionOutput()
 
                 DispatchQueue.main.async {
+                    self.insertPreviewLayer()
+                    self.layoutFrames()
                     self.delegate.quickScannerDidSetup(self)
                 }
             }
         }
     }
 
+    /// Initialize the video preview layer and set its videoGravity
     private func prepareVideoPreviewLayer() {
-        // Initialize the video preview layer and add it as a sublayer to the viewPreview view's layer.
         videoPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
         videoPreviewLayer.videoGravity = AVLayerVideoGravity.resizeAspectFill
+    }
 
-        DispatchQueue.main.async {
-            self.videoPreviewLayer.frame = self.delegate.videoPreview.bounds
-            self.delegate.videoPreview.layer.insertSublayer(self.videoPreviewLayer, at: 0)
-        }
+    /// Layout videoPreviewLayer. This method should be executed in main thread.
+    func layoutFrames() {
+        self.videoPreviewLayer.frame = self.delegate.videoPreview.bounds
+        self.delegate.videoPreview.setNeedsLayout()
+    }
+
+    fileprivate func insertPreviewLayer() {
+        self.delegate.videoPreview.layer.insertSublayer(self.videoPreviewLayer, at: 0)
     }
 
     /**
@@ -115,11 +124,13 @@ open class QuickScanner: NSObject {
 
             // Set the input device on the capture session.
 
-            if device.supportsSessionPreset(.hd4K3840x2160) == true {
-                captureSession.sessionPreset = .hd4K3840x2160
+            if device.supportsSessionPreset(.hd1920x1080) == true {
+                captureSession.sessionPreset = .hd1920x1080
             } else if device.supportsSessionPreset(.high) == true {
                 captureSession.sessionPreset = .high
             }
+
+
 
             captureSession.usesApplicationAudioSession = false
             captureSession.addInput(input)
@@ -139,55 +150,66 @@ open class QuickScanner: NSObject {
         if Environment.current == .simulator { return }
 
         let captureOutput = AVCaptureMetadataOutput()
-        
         captureSession.addOutput(captureOutput)
         captureOutput.setMetadataObjectsDelegate(self, queue: metadataScannerQueue)
-        scannerQueue.async {
-            captureOutput.metadataObjectTypes = self.codeTypes
-        }
+        captureOutput.metadataObjectTypes = self.codeTypes
 
         output = captureOutput
-        DispatchQueue.main.async {
-            self.delegate.videoPreview.setNeedsLayout()
+    }
+
+    /// Remember to use in main thread
+    private func configurePointOfInterests() {
+        guard let device = self.captureDevice else { return }
+        guard let videoPreviewLayer = self.videoPreviewLayer else { return }
+
+        do {
+            try device.lockForConfiguration()
+            let point = CGPoint(x: roiBounds.midX, y: roiBounds.midY)
+            let convPoint = videoPreviewLayer.captureDevicePointConverted(fromLayerPoint: point)
+
+            device.exposurePointOfInterest = convPoint
+            device.focusPointOfInterest = convPoint
+            device.unlockForConfiguration()
+        } catch {
+            delegate.quickScanner(self, didReceiveError: .system(error))
         }
     }
 
-    private func configurePointOfInterests() {
-        DispatchQueue.main.async {
-            guard let device = self.captureDevice else { return }
-            guard let videoPreviewLayer = self.videoPreviewLayer else { return }
-
-            do {
-                try device.lockForConfiguration()
-                let point = CGPoint(x: self.roiBounds.midX, y: self.roiBounds.midY)
-                let convPoint = videoPreviewLayer.captureDevicePointConverted(fromLayerPoint: point)
-                device.exposurePointOfInterest = convPoint
-                device.focusPointOfInterest = convPoint
-                device.unlockForConfiguration()
-            } catch {
-                self.delegate.quickScanner(self, didReceiveError: .system(error))
-            }
-        }
+    private func configureRectOfInterest() {
+        let roi = videoPreviewLayer.metadataOutputRectConverted(fromLayerRect: roiBounds)
+        output?.rectOfInterest = roi
     }
 
     // MARK: - Open functions to use framework
     open func startCapturing() {
-        scannerQueue.async {
-            self.captureSession.startRunning()
+        self.scannerQueue.async {
+            self.videoPermission.checkPersmission { [weak self] error in
+                guard let `self` = self else { return }
 
-            DispatchQueue.main.async {
-                self.configurePointOfInterests()
-                let roi = self.videoPreviewLayer.metadataOutputRectConverted(fromLayerRect: self.roiBounds)
+                guard error == nil else {
+                    DispatchQueue.main.async {
+                        self.delegate.quickScanner(self, didReceiveError: QuickScannerError.notAuthorizedToUseCamera)
+                    }
+                    return
+                }
 
-                self.output?.rectOfInterest = roi
+                self.captureSession.startRunning()
+
+                DispatchQueue.main.async {
+                    self.configurePointOfInterests()
+                    self.configureRectOfInterest()
+                }
             }
         }
     }
 
     open func stopCapturing() {
-
-        captureSession.stopRunning()
-        delegate?.quickScannerDidEndScanning(self)
+        scannerQueue.async {
+            self.captureSession.stopRunning()
+            DispatchQueue.main.async {
+                self.delegate?.quickScannerDidEndScanning(self)
+            }
+        }
     }
 }
 
