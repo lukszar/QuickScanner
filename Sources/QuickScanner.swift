@@ -220,11 +220,13 @@ extension QuickScanner: AVCaptureMetadataOutputObjectsDelegate {
         for obj in metadataObjects {
             guard let text = (obj as? AVMetadataMachineReadableCodeObject)?.stringValue else { return }
 
+            let myGroup = DispatchGroup()
+            myGroup.enter()
             stopCapturing()
-            DispatchQueue.main.async {
+            myGroup.leave() //// When your task completes
+            myGroup.notify(queue: DispatchQueue.main) {
                 self.delegate.quickScanner(self, didCaptureCode: text, type: obj.type)
             }
-
         }
     }
 }
