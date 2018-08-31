@@ -132,11 +132,13 @@ open class QuickScanner: NSObject {
                 captureSession.sessionPreset = .high
             }
 
-
-
             captureSession.usesApplicationAudioSession = false
             captureSession.addInput(input)
             captureSession.commitConfiguration()
+            captureSession.automaticallyConfiguresCaptureDeviceForWideColor = true
+            if device.isLowLightBoostSupported == true {
+                device.automaticallyEnablesLowLightBoostWhenAvailable = true
+            }
             device.unlockForConfiguration()
             captureDevice = device
 
