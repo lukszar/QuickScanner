@@ -11,7 +11,7 @@ import AVFoundation
 
 open class QuickScanner: NSObject {
 
-    open weak var delegate: QuickScannerDelegate! {
+    open weak var delegate: QuickScannerDelegate? {
         didSet { self.prepareCamera() }
     }
 
@@ -28,8 +28,10 @@ open class QuickScanner: NSObject {
 
     /// Rect for scanning focus area. It calculate coordinates of ROI based on coordinates of videoPreview.
     private var roiBounds: CGRect {
-        let roi = delegate.rectOfInterest
-        return roi.convert(roi.bounds, to: delegate.videoPreview)
+        guard let roi = delegate?.rectOfInterest, let videoPreview = delegate?.videoPreview else {
+            return CGRect.zero
+        }
+        return roi.convert(roi.bounds, to: videoPreview)
     }
 
     open var isCapturing: Bool {
@@ -61,7 +63,7 @@ open class QuickScanner: NSObject {
 
                 guard error == nil else {
                     DispatchQueue.main.async {
-                        self.delegate.quickScanner(self, didReceiveError: QuickScannerError.notAuthorizedToUseCamera)
+                        self.delegate?.quickScanner(self, didReceiveError: QuickScannerError.notAuthorizedToUseCamera)
                     }
                     return
                 }
@@ -73,7 +75,7 @@ open class QuickScanner: NSObject {
                 DispatchQueue.main.async {
                     self.insertPreviewLayer()
                     self.layoutFrames()
-                    self.delegate.quickScannerDidSetup(self)
+                    self.delegate?.quickScannerDidSetup(self)
                 }
             }
         }
@@ -87,12 +89,12 @@ open class QuickScanner: NSObject {
 
     /// Layout videoPreviewLayer. This method should be executed in main thread.
     func layoutFrames() {
-        self.videoPreviewLayer.frame = self.delegate.videoPreview.bounds
-        self.delegate.videoPreview.setNeedsLayout()
+        self.videoPreviewLayer.frame = self.delegate?.videoPreview.bounds ?? .zero
+        self.delegate?.videoPreview.setNeedsLayout()
     }
 
     fileprivate func insertPreviewLayer() {
-        self.delegate.videoPreview.layer.insertSublayer(self.videoPreviewLayer, at: 0)
+        self.delegate?.videoPreview.layer.insertSublayer(self.videoPreviewLayer, at: 0)
     }
 
     /**
@@ -103,7 +105,7 @@ open class QuickScanner: NSObject {
         if Environment.current == .simulator { return }
 
         guard let device = QuickScanner.Camera.device(for: position) else {
-            delegate.quickScanner(self, didReceiveError: QuickScannerError.cameraNotFound)
+            delegate?.quickScanner(self, didReceiveError: QuickScannerError.cameraNotFound)
             return
         }
 
@@ -140,7 +142,7 @@ open class QuickScanner: NSObject {
 
         } catch(let error) {
 
-            delegate.quickScanner(self, didReceiveError: QuickScannerError.system(error))
+            delegate?.quickScanner(self, didReceiveError: QuickScannerError.system(error))
             Logger.warning(message: error.localizedDescription)
             return
         }
@@ -171,7 +173,7 @@ open class QuickScanner: NSObject {
             device.focusPointOfInterest = convPoint
             device.unlockForConfiguration()
         } catch {
-            delegate.quickScanner(self, didReceiveError: .system(error))
+            delegate?.quickScanner(self, didReceiveError: .system(error))
         }
     }
 
@@ -188,7 +190,7 @@ open class QuickScanner: NSObject {
 
                 guard error == nil else {
                     DispatchQueue.main.async {
-                        self.delegate.quickScanner(self, didReceiveError: QuickScannerError.notAuthorizedToUseCamera)
+                        self.delegate?.quickScanner(self, didReceiveError: QuickScannerError.notAuthorizedToUseCamera)
                     }
                     return
                 }
@@ -225,7 +227,7 @@ extension QuickScanner: AVCaptureMetadataOutputObjectsDelegate {
             stopCapturing()
             myGroup.leave() //// When your task completes
             myGroup.notify(queue: DispatchQueue.main) {
-                self.delegate.quickScanner(self, didCaptureCode: text, type: obj.type)
+                self.delegate?.quickScanner(self, didCaptureCode: text, type: obj.type)
             }
         }
     }
