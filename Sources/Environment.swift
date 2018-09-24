@@ -15,7 +15,7 @@ enum Environment {
 
     static var current: Environment {
 
-        #if (arch(i386) || arch(x86_64)) && (os(iOS) || os(watchOS) || os(tvOS))
+        #if targetEnvironment(simulator)
             return .simulator
         #else
             return .device

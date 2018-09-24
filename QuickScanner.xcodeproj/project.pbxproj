@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		37E578B12052EC2500C66FAC /* QuickScanner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37E578A72052EC2500C66FAC /* QuickScanner.framework */; };
 		37E578C92052ED2300C66FAC /* QuickScanner.h in Headers */ = {isa = PBXBuildFile; fileRef = 37E578C22052ED2300C66FAC /* QuickScanner.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		37E578CC2052ED2300C66FAC /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 37E578C82052ED2300C66FAC /* Info.plist */; };
 		37E578CF2052EFE000C66FAC /* QuickScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37E578CE2052EFE000C66FAC /* QuickScanner.swift */; };
 		37E578D02056B93F00C66FAC /* QuickScannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37E578C72052ED2300C66FAC /* QuickScannerTests.swift */; };
 		37E578D22056BA5800C66FAC /* QuickScanner+Camera.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37E578D12056BA5800C66FAC /* QuickScanner+Camera.swift */; };
@@ -189,10 +188,12 @@
 				TargetAttributes = {
 					37E578A62052EC2500C66FAC = {
 						CreatedOnToolsVersion = 9.2;
+						LastSwiftMigration = 1000;
 						ProvisioningStyle = Automatic;
 					};
 					37E578AF2052EC2500C66FAC = {
 						CreatedOnToolsVersion = 9.2;
+						LastSwiftMigration = 1000;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -220,7 +221,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				37E578CC2052ED2300C66FAC /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -401,7 +401,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = info.szarkowicz.framework.quickscanner;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -422,7 +422,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = info.szarkowicz.framework.quickscanner;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -437,7 +437,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = info.szarkowicz.framework.quickscanner.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -452,7 +452,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = info.szarkowicz.framework.quickscanner.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
